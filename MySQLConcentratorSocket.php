@@ -1,16 +1,16 @@
 <?php
 
-class PHPMySQLProxySocketException extends Exception
+class MySQLConcentratorSocketException extends Exception
 {
   function __construct($message, $socket)
   {
-    $message = PHPMySQLProxySocket::std_error($message, $socket);
+    $message = MySQLConcentratorSocket::std_error($message, $socket);
     parent::__construct($message);
   }
 }
 
 
-class PHPMySQLProxySocket
+class MySQLConcentratorSocket
 {
   static function error_code($socket)
   {

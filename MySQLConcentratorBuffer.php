@@ -1,8 +1,8 @@
 <?php
 
-class PHPMySQLProxyBufferException extends Exception {}
+class MySQLConcentratorBufferException extends Exception {}
 
-class PHPMySqlProxyBuffer
+class MySQLConcentratorBuffer
 {
   public $buffer;
   public $max_size;
@@ -17,7 +17,7 @@ class PHPMySqlProxyBuffer
   {
     if (count($data) > $this->space_remaining())
     {
-      throw new PHPMySQLProxyBufferException("Can't append '$data' to buffer because data is " . count($data) . " bytes long and there is only space remaining for " . $this->space_remaining() . ".");
+      throw new MySQLConcentratorBufferException("Can't append '$data' to buffer because data is " . count($data) . " bytes long and there is only space remaining for " . $this->space_remaining() . ".");
     }
     $this->buffer .= $data;
   }
