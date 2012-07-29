@@ -48,19 +48,17 @@ class MySQLConcentratorTest extends MySQLConcentratorBaseTest
     $this->db->query("INSERT INTO foo (value) VALUES ('first')");
   }
 
-  function testSimpleCommand()
+  function testSimpleQueryOnSeparateConnections()
   {
     $database_config = $this->databases_config['test'];
     $database_config['port'] = 3307;
     $database_config['host'] = '127.0.0.1';
     $concentrator_dsn = $this->build_dsn($database_config);
     $db_conn_1 = new MySQLConcentratorPDO($concentrator_dsn, $database_config['user_name'], $database_config['password']);
-    $result = $db_conn_1->query("SELECT * FROM foo WHERE value = 'first'");
-    $this->log(print_r($result, true));
-    $this->assertEqual(1, $result->rowCount());
+    $result_1 = $db_conn_1->query("SELECT * FROM foo WHERE value = 'first'");
+    $this->assertEqual(1, $result_1->rowCount());
     $db_conn_2 = new MySQLConcentratorPDO($concentrator_dsn, $database_config['user_name'], $database_config['password']);
-    $result = $db_conn_2->query("SELECT * FROM foo WHERE value = 'first'");
-    $this->log(print_r($result, true));
-    $this->assertEqual(1, $result->rowCount());
+    $result_2 = $db_conn_2->query("SELECT * FROM foo WHERE value = 'first'");
+    $this->assertEqual(1, $result_2->rowCount());
   }
 }

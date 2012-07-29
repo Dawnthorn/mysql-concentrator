@@ -2,6 +2,7 @@
 
 require_once('MySQLConcentratorBuffer.php');
 require_once('MySQLConcentratorHex.php');
+require_once('MySQLConcentratorPacket.php');
 require_once('MySQLConcentratorSocket.php');
 
 class MySQLConcentratorConnection
@@ -11,6 +12,7 @@ class MySQLConcentratorConnection
   public $connected = FALSE;
   public $closed = FALSE;
   public $name;
+  public $packets_read = array();
   public $port;
   public $proxy;
   public $read_buffer;
@@ -27,6 +29,10 @@ class MySQLConcentratorConnection
     $this->read_buffer = new MySQLConcentratorBuffer();
     $this->socket = $socket;
     $this->write_buffer = new MySQLConcentratorBuffer();
+    if ($address == NULL)
+    {
+      $this->get_socket_info();
+    }
   }
 
   function connect()
@@ -46,8 +52,22 @@ class MySQLConcentratorConnection
     }
   }
 
+  function get_socket_info()
+  {
+    $result = @socket_getpeername($this->socket, $this->address, $this->port);
+    if ($result === FALSE)
+    {
+      $error_code = socket_last_error($this->socket);
+      if ($error_code !== SOCKET_EINPROGRESS)
+      {
+        throw new MySQLConcentratorSocketException("Error requsting address info (socket_getpeername)", $this->socket);
+      }
+    }
+  }
+
   function log($str)
   {
+    $str = "({$this->name}:{$this->address}:{$this->port}) $str";
     $this->concentrator->log->log($str);
   }
 
@@ -74,10 +94,32 @@ class MySQLConcentratorConnection
       else
       {
         $this->read_buffer->append($result);
-        $this->log("Read ({$this->name}):\n" . hex_pretty_print($result) . "\n");
+        $this->log("Read:\n" . hex_pretty_print($result) . "\n");
       }
     }
   }  
+
+  function read_packets()
+  {
+    while ($this->read_buffer->length() > 4)
+    {
+      $this->log("reading packets\n");
+//      $this->log("Read Buffer:\n" . hex_pretty_print($this->read_buffer->buffer) . "\n");
+      list($length, $number) = MySQLConcentratorPacket::parse_header($this->read_buffer->buffer);
+      $this->log("got packet {$number} of length {$length} read buffer length: " . $this->read_buffer->length() . "\n");
+      if ($length + 4 <= $this->read_buffer->length())
+      {
+        $this->log("read packet of length {$length}.\n");
+        $binary = $this->read_buffer->pop($length + 4);
+        $packet = new MySQLConcentratorPacket($binary);
+        $this->packets_read[] = $packet;
+      }
+      else
+      {
+        return;
+      }
+    }
+  }
 
   function wants_to_write()
   {
@@ -95,7 +137,7 @@ class MySQLConcentratorConnection
     {
       throw new MySQLConcentratorSocketException("Error writing to {$this->name} ({$this->address}:{$this->port})", $this->socket);
     }
-    $this->log("Wrote ({$this->name}):\n" . hex_pretty_print($this->write_buffer->buffer) . "\n");
+    $this->log("Wrote:\n" . hex_pretty_print($this->write_buffer->buffer) . "\n");
     $this->write_buffer->pop($result);
   }
 }

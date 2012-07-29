@@ -1,14 +1,16 @@
 <?php
 
+require_once('MySQLConcentratorClientConnection.php');
 require_once('MySQLConcentratorConnection.php');
 require_once('MySQLConcentratorLog.php');
+require_once('MySQLConcentratorMySQLConnection.php');
 require_once('MySQLConcentratorSocket.php');
 
 class MySQLConcentratorFatalException extends Exception {}
 
 class MySQLConcentrator
 {
-  public $clients = array();
+  public $connections = array();
   public $listen_socket;
   public $listen_address = '127.0.0.1';
   public $listen_port = 3307;
@@ -33,7 +35,8 @@ class MySQLConcentrator
   function create_mysql_connection()
   {
     $socket = $this->create_socket("mysql socket", '0.0.0.0');
-    $this->mysql_connection = new MySQLConcentratorConnection($this, "mysql socket", $socket, FALSE, $this->mysql_address, $this->mysql_port);
+    $this->mysql_connection = new MySQLConcentratorMySQLConnection($this, "mysql socket", $socket, FALSE, $this->mysql_address, $this->mysql_port);
+    $this->connections[] = $this->mysql_connection;
   }
 
   function create_socket($socket_name, $address, $port = 0)
@@ -93,20 +96,12 @@ class MySQLConcentrator
     {
       $read_sockets = array($this->listen_socket);
       $write_sockets = array();
-      if ($this->mysql_connection != NULL)
+      foreach ($this->connections as $connection)
       {
-        $read_sockets[] = $this->mysql_connection->socket;
-        if ($this->mysql_connection->wants_to_write())
+        $read_sockets[] = $connection->socket;
+        if ($connection->wants_to_write())
         {
-          $write_sockets[] = $this->mysql_connection->socket;
-        }
-      }
-      foreach ($this->clients as $client)
-      {
-        $read_sockets[] = $client->socket;
-        if ($client->wants_to_write())
-        {
-          $write_sockets[] = $client->socket;
+          $write_sockets[] = $connection->socket;
         }
       }
       $exception_sockets = NULL;
@@ -119,16 +114,8 @@ class MySQLConcentrator
       {
         foreach ($write_sockets as $write_socket)
         {
-          $this->log->log("Got Write!\n");
-          if ($write_socket == $this->mysql_connection->socket)
-          {
-            $this->mysql_connection->write();
-          }
-          else
-          {
-            $connection = $this->clients[$write_socket];
-            $connection->write();
-          }
+          $connection = $this->connections[$write_socket];
+          $connection->write();
         }
         foreach ($read_sockets as $read_socket)
         {
@@ -139,35 +126,21 @@ class MySQLConcentrator
             {
               throw new MySQLConcentratorSocketException("Error accepting connection on listen socket", $this->listen_socket);
             }
-            $this->clients[$socket] = new MySQLConcentratorConnection($this, "client", $socket, TRUE);
+            $client_connection = new MySQLConcentratorClientConnection($this, "client", $socket, TRUE);
+            $this->connections[$socket] = $client_connection;
             if ($this->mysql_connection == NULL)
             {
               $this->create_mysql_connection();
-            }
-          }
-          elseif ($read_socket == $this->mysql_connection->socket)
-          {
-            $this->mysql_connection->read();
-            if (!$this->mysql_connection->read_buffer->is_empty())
-            {
-              $data = $this->mysql_connection->read_buffer->pop();
-              foreach ($this->clients as $client)
-              {
-                $client->write_buffer->append($data);
-              }
+              $this->mysql_connection->queue($client_connection);
             }
           }
           else
           {
-            $connection = $this->clients[$read_socket];
+            $connection = $this->connections[$read_socket];
             $connection->read();
             if ($connection->closed)
             {
-              unset($this->clients[$read_socket]);
-            }
-            elseif (!$connection->read_buffer->is_empty())
-            {
-              $this->mysql_connection->write_buffer->append($connection->read_buffer->pop());
+              unset($this->connections[$read_socket]);
             }
           }
         }
