@@ -76,3 +76,15 @@ function hex_print_dump($str)
   }
   return $result;
 }
+
+function hex_php_string($str)
+{
+  $result = '"';
+  for ($i = 0; $i < strlen($str); $i++)
+  {
+    $result .= sprintf("\x%02x", ord($str{$i}));
+  }
+  $result .= '"';
+  return $result;
+}
+

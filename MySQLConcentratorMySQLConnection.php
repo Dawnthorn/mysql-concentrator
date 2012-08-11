@@ -27,6 +27,7 @@ class MySQLConcentratorMySQLConnection extends MySQLConcentratorConnection
     {
       if ($this->handshake_init_packet == null)
       {
+        $packet->type = MySQLConcentratorPacket::HANDSHAKE_INITIALIZATION_PACKET;
         $this->handshake_init_packet = $packet;
       }
       elseif ($this->client_authentication_response_packet == null)

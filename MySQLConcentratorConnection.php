@@ -94,7 +94,7 @@ class MySQLConcentratorConnection
       else
       {
         $this->read_buffer->append($result);
-        $this->log("Read:\n" . hex_pretty_print($result) . "\n");
+//        $this->log("Read:\n" . hex_pretty_print($result) . "\n");
       }
     }
   }  
@@ -112,6 +112,8 @@ class MySQLConcentratorConnection
         $this->log("read packet of length {$length}.\n");
         $binary = $this->read_buffer->pop($length + 4);
         $packet = new MySQLConcentratorPacket($binary);
+        $this->log("Packet:\n" . hex_pretty_print($binary) . "\n");
+        $this->log(hex_php_string($binary) . "\n");
         $this->packets_read[] = $packet;
       }
       else
