@@ -1,5 +1,7 @@
 <?php
 
+require_once(dirname(__FILE__) . "/MySQLConcentratorHex.php");
+
 class MySQLConcentratorPacket
 {
   const HANDSHAKE_INITIALIZATION_PACKET = 0xffff;
@@ -150,6 +152,29 @@ class MySQLConcentratorPacket
   {
     $this->attributes[$attribute_name] = substr($this->binary, $this->parse_position);
     $this->parse_position = $this->length;
+  }
+
+  function parse_null_terminated_string($attribute_name)
+  {
+    list($result, $length) = MySQLConcentratorPacket::unmarshall_null_terminated_string(substr($this->binary, $this->parse_position));
+    $this->attributes[$attribute_name] = substr($this->binary, $this->parse_position, $length - 1);
+    $this->parse_position += $length;
+  }
+
+  function parse_com_field_list()
+  {
+    $this->parse_null_terminated_string('table_name');
+    $this->parse_closing_string('column_name');
+  }
+
+  function parse_com_init_db()
+  {
+    $this->parse_closing_string('database_name');
+  }
+
+  function parse_com_set_option()
+  {
+    $this->parse_next_2_byte_integer('option_id');
   }
 
   function parse_com_query()
@@ -363,5 +388,12 @@ class MySQLConcentratorPacket
     list($value, $length) = self::unmarshall_length_coded_binary($binary);
     $result = substr($binary, $length, $value);
     return array($result, $length + $value);
+  }
+
+  static function unmarshall_null_terminated_string($binary)
+  {
+    $pos = strpos($binary, "\x00");
+    $result = substr($binary, 0, $pos);
+    return array($result, $pos + 1);
   }
 }

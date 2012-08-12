@@ -96,12 +96,37 @@ class MySQLConcentratorClientConnection extends MySQLConcentratorConnection
     {
       throw new MySQLConcentratorFatalException("In waiting for command state, expecting a command packet, but got a '" . $packet->type_name() . "' packet");
     }
-    if ($packet->type == MySQLConcentratorPacket::COM_QUIT)
+    switch ($packet->type)
     {
-      $this->remove_packet($this->packets_read, $packet);
-      $this->state = 'quit';
+      case MySQLConcentratorPacket::COM_QUIT:
+        $this->remove_packet($this->packets_read, $packet);
+        $this->state = 'quit';
+        break;
+      case MySQLConcentratorPacket::COM_SET_OPTION:
+        $this->state = 'waiting_for_set_option_response';
+        break;
+      default:
+        $this->state = 'waiting_for_result';
     }
-    $this->state = 'waiting_for_result';
+  }
+
+  function state_waiting_for_field($packet)
+  {
+    $packet->parse('result', 'field');
+    switch ($packet->type)
+    {
+      case MySQLConcentratorPacket::RESPONSE_ERROR:
+        $this->state = 'waiting_for_command';
+        break;
+      case MySQLConcentratorPacket::RESPONSE_FIELD:
+        $this->state = 'waiting_for_field';
+        break;
+      case MySQLConcentratorPacket::RESPONSE_EOF:
+        $this->state = 'waiting_for_row_data';
+        break;
+      default:
+        throw new MySQLConcentratorFatalException("expecting a field response or an eof response, but got a '" . $packet->type_name() . "' packet");
+    }
   }
 
   function state_waiting_for_handshake($packet)
@@ -136,25 +161,6 @@ class MySQLConcentratorClientConnection extends MySQLConcentratorConnection
     }
   }
 
-  function state_waiting_for_field($packet)
-  {
-    $packet->parse('result', 'field');
-    switch ($packet->type)
-    {
-      case MySQLConcentratorPacket::RESPONSE_ERROR:
-        $this->state = 'waiting_for_command';
-        break;
-      case MySQLConcentratorPacket::RESPONSE_FIELD:
-        $this->state = 'waiting_for_field';
-        break;
-      case MySQLConcentratorPacket::RESPONSE_EOF:
-        $this->state = 'waiting_for_row_data';
-        break;
-      default:
-        throw new MySQLConcentratorFatalException("expecting a field response or an eof response, but got a '" . $packet->type_name() . "' packet");
-    }
-  }
-
   function state_waiting_for_row_data($packet)
   {
     $packet->parse('result', 'row_data', $this->num_fields);
@@ -171,6 +177,22 @@ class MySQLConcentratorClientConnection extends MySQLConcentratorConnection
         break;
       default:
         throw new MySQLConcentratorFatalException("expecting a row data response or an eof response, but got a '" . $packet->type_name() . "' packet");
+    }
+  }
+
+  function state_waiting_for_set_option_response($packet)
+  {
+    $packet->parse('result', 'eof');
+    switch ($packet->type)
+    {
+      case MySQLConcentratorPacket::RESPONSE_ERROR:
+        $this->state = 'waiting_for_command';
+        break;
+      case MySQLConcentratorPacket::RESPONSE_EOF:
+        $this->state = 'waiting_for_command';
+        break;
+      default:
+        throw new MySQLConcentratorFatalException("expecting a an eof response to set_option, but got a '" . $packet->type_name() . "' packet");
     }
   }
 

@@ -123,7 +123,7 @@ class MySQLConcentratorConnection
         $binary = $this->read_buffer->pop($length + 4);
         $packet = new MySQLConcentratorPacket($binary);
         $this->log("Packet:\n" . hex_pretty_print($binary) . "\n");
-        $this->log(hex_php_string($binary) . "\n");
+//        $this->log(hex_php_string($binary) . "\n");
         $this->queue_read_packet($packet);
       }
       else

@@ -54,6 +54,13 @@ class MySQLConcentratorPacketTest extends MySQLConcentratorBaseTest
     $this->assertEqual(1, $length);
   }
 
+  function testParseNullTerminatedString()
+  {
+    list($result, $length) = MySQLConcentratorPacket::unmarshall_null_terminated_string("abc\x00def");
+    $this->assertEqual("abc", $result);
+    $this->assertEqual(4, $length);
+  }
+
   function testParse()
   {
     $packet = new MySQLConcentratorPacket("\x07\x00\x00\x02\x00\x00\x00\x02\x00\x00\x00");
@@ -123,6 +130,14 @@ class MySQLConcentratorPacketTest extends MySQLConcentratorBaseTest
     $packet = new MySQLConcentratorPacket("\x01\x00\x00\x00\x01");
     $packet->parse('command');
     $this->assertEqual(MySQLConcentratorPacket::COM_QUIT, $packet->type);
+  }
+
+  function testFieldListPacket()
+  {
+    $packet = new MySQLConcentratorPacket("\x09\x00\x00\x00\x04\x61\x63\x74\x69\x6f\x6e\x73\x00");
+    $packet->parse('command');
+    $this->assertEqual(MySQLConcentratorPacket::COM_FIELD_LIST, $packet->type);
+    $this->assertEqual('actions', $packet->attributes['table_name']);
   }
 
 }
