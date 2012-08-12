@@ -67,8 +67,18 @@ class MySQLConcentratorConnection
 
   function log($str)
   {
-    $str = "({$this->name}:{$this->address}:{$this->port}) $str";
+    $str = "(" . $this->log_name() . ") $str";
     $this->concentrator->log->log($str);
+  }
+
+  function log_name()
+  {
+    return "{$this->name}:{$this->address}:{$this->port}";
+  }
+
+  function queue_read_packet($packet)
+  {
+    $this->packets_read[] = $packet;
   }
 
   function read()
@@ -114,7 +124,7 @@ class MySQLConcentratorConnection
         $packet = new MySQLConcentratorPacket($binary);
         $this->log("Packet:\n" . hex_pretty_print($binary) . "\n");
         $this->log(hex_php_string($binary) . "\n");
-        $this->packets_read[] = $packet;
+        $this->queue_read_packet($packet);
       }
       else
       {

@@ -38,8 +38,11 @@ class MySQLConcentratorTest extends MySQLConcentratorBaseTest
   function setUp()
   {
     parent::setUp();
-    require_once(dirname(__FILE__) . "/../conf/database.php");
-    $this->databases_config = $databases;
+    if ($this->databases_config == null)
+    {
+      require_once(dirname(__FILE__) . "/../conf/database.php");
+      $this->databases_config = $databases;
+    }
     $database_config = $this->databases_config['test'];
     $this->dsn = $this->build_dsn($database_config);
     $this->db = new MySQLConcentratorPDO($this->dsn, $database_config['user_name'], $database_config['password']);
@@ -60,5 +63,22 @@ class MySQLConcentratorTest extends MySQLConcentratorBaseTest
     $db_conn_2 = new MySQLConcentratorPDO($concentrator_dsn, $database_config['user_name'], $database_config['password']);
     $result_2 = $db_conn_2->query("SELECT * FROM foo WHERE value = 'first'");
     $this->assertEqual(1, $result_2->rowCount());
+  }
+
+  function testTransactionOnOneConnectionWrapsOtherConnection()
+  {
+    $database_config = $this->databases_config['test'];
+    $database_config['port'] = 3307;
+    $database_config['host'] = '127.0.0.1';
+    $concentrator_dsn = $this->build_dsn($database_config);
+    $db_conn_1 = new MySQLConcentratorPDO($concentrator_dsn, $database_config['user_name'], $database_config['password']);
+    $db_conn_2 = new MySQLConcentratorPDO($concentrator_dsn, $database_config['user_name'], $database_config['password']);
+    $db_conn_1->query("BEGIN");
+    $db_conn_2->query("INSERT INTO foo (value) VALUES ('second')");
+    $result = $db_conn_2->query("SELECT * FROM foo WHERE value = 'second'");
+    $this->assertEqual(1, $result->rowCount());
+    $db_conn_1->query("ROLLBACK");
+    $result = $db_conn_2->query("SELECT * FROM foo WHERE value = 'second'");
+    $this->assertEqual(0, $result->rowCount());
   }
 }

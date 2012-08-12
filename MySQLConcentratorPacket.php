@@ -41,44 +41,87 @@ class MySQLConcentratorPacket
   const COM_STMT_FETCH = 28;
   const COM_DAEMON = 29;
 
+  static $type_to_string = array
+  (
+    self::HANDSHAKE_INITIALIZATION_PACKET => 'handshake_initialization',
+    self::CLIENT_AUTHENTICATION_PACKET => 'client_authentication',
+    self::RESPONSE_OK => 'ok',
+    self::RESPONSE_ERROR => 'error',
+    self::RESPONSE_RESULT_SET => 'result_set',
+    self::RESPONSE_FIELD => 'field',
+    self::RESPONSE_ROW_DATA => 'row_data',
+    self::RESPONSE_EOF => 'eof',
+    self::COM_SLEEP => 'sleep',
+    self::COM_QUIT => 'quit',
+    self::COM_INIT_DB => 'init_db',
+    self::COM_QUERY => 'query',
+    self::COM_FIELD_LIST => 'field_list',
+    self::COM_CREATE_DB => 'create_db',
+    self::COM_DROP_DB => 'drop_db',
+    self::COM_REFRESH => 'refresh',
+    self::COM_SHUTDOWN => 'shutdown',
+    self::COM_STATISTICS => 'statistics',
+    self::COM_PROCESS_INFO => 'process_info',
+    self::COM_CONNECT => 'connect',
+    self::COM_PROCESS_KILL => 'process_kill',
+    self::COM_DEBUG => 'debug',
+    self::COM_PING => 'ping',
+    self::COM_TIME => 'time',
+    self::COM_DELAYED_INSERT => 'delayed_insert',
+    self::COM_CHANGE_USER => 'change_user',
+    self::COM_BINLOG_DUMP => 'binlog_dump',
+    self::COM_TABLE_DUMP => 'table_dump',
+    self::COM_CONNECT_OUT => 'connect_out',
+    self::COM_REGISTER_SLAVE => 'register_slave',
+    self::COM_STMT_PREPARE => 'stmt_prepare',
+    self::COM_STMT_EXECUTE => 'stmt_execute',
+    self::COM_STMT_SEND_LONG_DATA => 'stmt_send_log_data',
+    self::COM_STMT_CLOSE => 'stmt_close',
+    self::COM_STMT_RESET => 'stmt_reset',
+    self::COM_SET_OPTION => 'set_option',
+    self::COM_STMT_FETCH => 'stmt_fetch',
+    self::COM_DAEMON => 'daemon',
+  );
+
   static $command_id_to_string = array
   (
-    MySQLConcentratorPacket::COM_SLEEP => 'sleep',
-    MySQLConcentratorPacket::COM_QUIT => 'quit',
-    MySQLConcentratorPacket::COM_INIT_DB => 'init_db',
-    MySQLConcentratorPacket::COM_QUERY => 'query',
-    MySQLConcentratorPacket::COM_FIELD_LIST => 'field_list',
-    MySQLConcentratorPacket::COM_CREATE_DB => 'create_db',
-    MySQLConcentratorPacket::COM_DROP_DB => 'drop_db',
-    MySQLConcentratorPacket::COM_REFRESH => 'refresh',
-    MySQLConcentratorPacket::COM_SHUTDOWN => 'shutdown',
-    MySQLConcentratorPacket::COM_STATISTICS => 'statistics',
-    MySQLConcentratorPacket::COM_PROCESS_INFO => 'process_info',
-    MySQLConcentratorPacket::COM_CONNECT => 'connect',
-    MySQLConcentratorPacket::COM_PROCESS_KILL => 'process_kill',
-    MySQLConcentratorPacket::COM_DEBUG => 'debug',
-    MySQLConcentratorPacket::COM_PING => 'ping',
-    MySQLConcentratorPacket::COM_TIME => 'time',
-    MySQLConcentratorPacket::COM_DELAYED_INSERT => 'delayed_insert',
-    MySQLConcentratorPacket::COM_CHANGE_USER => 'change_user',
-    MySQLConcentratorPacket::COM_BINLOG_DUMP => 'binlog_dump',
-    MySQLConcentratorPacket::COM_TABLE_DUMP => 'table_dump',
-    MySQLConcentratorPacket::COM_CONNECT_OUT => 'connect_out',
-    MySQLConcentratorPacket::COM_REGISTER_SLAVE => 'register_slave',
-    MySQLConcentratorPacket::COM_STMT_PREPARE => 'stmt_prepare',
-    MySQLConcentratorPacket::COM_STMT_EXECUTE => 'stmt_execute',
-    MySQLConcentratorPacket::COM_STMT_SEND_LONG_DATA => 'stmt_send_log_data',
-    MySQLConcentratorPacket::COM_STMT_CLOSE => 'stmt_close',
-    MySQLConcentratorPacket::COM_STMT_RESET => 'stmt_reset',
-    MySQLConcentratorPacket::COM_SET_OPTION => 'set_option',
-    MySQLConcentratorPacket::COM_STMT_FETCH => 'stmt_fetch',
-    MySQLConcentratorPacket::COM_DAEMON => 'daemon',
+    self::COM_SLEEP => 'sleep',
+    self::COM_QUIT => 'quit',
+    self::COM_INIT_DB => 'init_db',
+    self::COM_QUERY => 'query',
+    self::COM_FIELD_LIST => 'field_list',
+    self::COM_CREATE_DB => 'create_db',
+    self::COM_DROP_DB => 'drop_db',
+    self::COM_REFRESH => 'refresh',
+    self::COM_SHUTDOWN => 'shutdown',
+    self::COM_STATISTICS => 'statistics',
+    self::COM_PROCESS_INFO => 'process_info',
+    self::COM_CONNECT => 'connect',
+    self::COM_PROCESS_KILL => 'process_kill',
+    self::COM_DEBUG => 'debug',
+    self::COM_PING => 'ping',
+    self::COM_TIME => 'time',
+    self::COM_DELAYED_INSERT => 'delayed_insert',
+    self::COM_CHANGE_USER => 'change_user',
+    self::COM_BINLOG_DUMP => 'binlog_dump',
+    self::COM_TABLE_DUMP => 'table_dump',
+    self::COM_CONNECT_OUT => 'connect_out',
+    self::COM_REGISTER_SLAVE => 'register_slave',
+    self::COM_STMT_PREPARE => 'stmt_prepare',
+    self::COM_STMT_EXECUTE => 'stmt_execute',
+    self::COM_STMT_SEND_LONG_DATA => 'stmt_send_log_data',
+    self::COM_STMT_CLOSE => 'stmt_close',
+    self::COM_STMT_RESET => 'stmt_reset',
+    self::COM_SET_OPTION => 'set_option',
+    self::COM_STMT_FETCH => 'stmt_fetch',
+    self::COM_DAEMON => 'daemon',
   );
 
   public $attributes = array();
   public $binary = null;
   public $length = null;
   public $number = null;
+  public $parsed = false;
   public $type = null;
 
   function __construct($binary = null)
@@ -86,11 +129,21 @@ class MySQLConcentratorPacket
     $this->binary = $binary;
   }
 
+  function is_command()
+  {
+    return ($this->type >= self::COM_SLEEP && $this->type <= self::COM_DAEMON);
+  }
+
   function parse($expected)
   {
+    if ($this->parsed)
+    {
+      return;
+    }
     list($this->length, $this->number) = self::parse_header($this->binary);
     $method = "parse_$expected";
     $this->$method(func_get_args());
+    $this->parsed = true;
   }
 
   function parse_closing_string($attribute_name)
@@ -204,8 +257,9 @@ class MySQLConcentratorPacket
     $this->parse_closing_string('message');
   }
 
-  function parse_result()
+  function parse_result($args)
   {
+    $result_expected = $args[1];
     $first_byte = ord($this->binary{4});
     $this->parse_position = 4;
     switch ($first_byte)
@@ -224,7 +278,8 @@ class MySQLConcentratorPacket
         break;
       default:
         $this->type = self::RESPONSE_RESULT_SET;
-        $this->parse_result_set();
+        $method_name = "parse_$result_expected";
+        $this->$method_name($args);
         break;
     }
   }
@@ -239,7 +294,7 @@ class MySQLConcentratorPacket
   {
     $this->type = self::RESPONSE_ROW_DATA;
     $this->parse_position = 4;
-    $num_columns = $args[1];
+    $num_columns = $args[2];
     $result = array();
     for ($i = 0; $i < $num_columns; $i++)
     {
@@ -248,6 +303,15 @@ class MySQLConcentratorPacket
       $this->parse_position += $length;
     }
     $this->attributes['column_data'] = $result;
+  }
+
+  function type_name()
+  {
+    if (array_key_exists($this->type, self::$type_to_string))
+    {
+      return self::$type_to_string[$this->type];
+    }
+    return 'unknown';
   }
 
   static function unmarshall_little_endian_integer($binary, $length, $offset = 0)

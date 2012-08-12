@@ -57,7 +57,7 @@ class MySQLConcentratorPacketTest extends MySQLConcentratorBaseTest
   function testParse()
   {
     $packet = new MySQLConcentratorPacket("\x07\x00\x00\x02\x00\x00\x00\x02\x00\x00\x00");
-    $packet->parse('result');
+    $packet->parse('result', 'result_set');
     $this->assertEqual(7, $packet->length);
     $this->assertEqual(2, $packet->number);
     $this->assertEqual(MySQLConcentratorPacket::RESPONSE_OK, $packet->type);
@@ -79,7 +79,7 @@ class MySQLConcentratorPacketTest extends MySQLConcentratorBaseTest
   function testResultSetHeaderPacket()
   {
     $packet = new MySQLConcentratorPacket("\x01\x00\x00\x01\x02");
-    $packet->parse('result');
+    $packet->parse('result', 'result_set');
     $this->assertEqual(MySQLConcentratorPacket::RESPONSE_RESULT_SET, $packet->type);
     $this->assertEqual(2, $packet->attributes['field_count']);
   }
@@ -87,7 +87,7 @@ class MySQLConcentratorPacketTest extends MySQLConcentratorBaseTest
   function testResultSetFieldPacket()
   {
     $packet = new MySQLConcentratorPacket("\x37\x00\x00\x02\x03\x64\x65\x66\x17\x6d\x79\x73\x71\x6c\x5f\x63\x6f\x6e\x63\x65\x6e\x74\x72\x61\x74\x6f\x72\x5f\x74\x65\x73\x74\x03\x66\x6f\x6f\x03\x66\x6f\x6f\x02\x69\x64\x02\x69\x64\x0c\x3f\x00\x0b\x00\x00\x00\x03\x03\x42\x00\x00\x00");
-    $packet->parse('field');
+    $packet->parse('result', 'field');
     $this->assertEqual(MySQLConcentratorPacket::RESPONSE_FIELD, $packet->type);
     $this->assertEqual('def', $packet->attributes['catalog']);
     $this->assertEqual('mysql_concentrator_test', $packet->attributes['db']);
@@ -105,7 +105,7 @@ class MySQLConcentratorPacketTest extends MySQLConcentratorBaseTest
   function testEOFPacket()
   {
     $packet = new MySQLConcentratorPacket("\x05\x00\x00\x04\xfe\x00\x00\x22\x00");
-    $packet->parse('result');
+    $packet->parse('result', 'result_set');
     $this->assertEqual(0, $packet->attributes['warning_count']);
     $this->assertEqual(34, $packet->attributes['status_flags']);
   }
@@ -113,7 +113,7 @@ class MySQLConcentratorPacketTest extends MySQLConcentratorBaseTest
   function testRowDataPacket()
   {
     $packet = new MySQLConcentratorPacket("\x08\x00\x00\x05\x01\x31\x05\x66\x69\x72\x73\x74");
-    $packet->parse('row_data', 2);
+    $packet->parse('result', 'row_data', 2);
     $this->assertEqual(MySQLConcentratorPacket::RESPONSE_ROW_DATA, $packet->type);
     $this->assertEqual(array(0 => 1, 1 => 'first'), $packet->attributes['column_data']);
   }

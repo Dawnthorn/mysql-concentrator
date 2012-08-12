@@ -36,7 +36,7 @@ class MySQLConcentrator
   {
     $socket = $this->create_socket("mysql socket", '0.0.0.0');
     $this->mysql_connection = new MySQLConcentratorMySQLConnection($this, "mysql socket", $socket, FALSE, $this->mysql_address, $this->mysql_port);
-    $this->connections[] = $this->mysql_connection;
+    $this->connections[$socket] = $this->mysql_connection;
   }
 
   function create_socket($socket_name, $address, $port = 0)
@@ -126,13 +126,12 @@ class MySQLConcentrator
             {
               throw new MySQLConcentratorSocketException("Error accepting connection on listen socket", $this->listen_socket);
             }
-            $client_connection = new MySQLConcentratorClientConnection($this, "client", $socket, TRUE);
-            $this->connections[$socket] = $client_connection;
             if ($this->mysql_connection == NULL)
             {
               $this->create_mysql_connection();
-              $this->mysql_connection->queue($client_connection);
             }
+            $client_connection = new MySQLConcentratorClientConnection($this, "client", $socket, TRUE);
+            $this->connections[$socket] = $client_connection;
           }
           else
           {
