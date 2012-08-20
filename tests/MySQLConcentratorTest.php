@@ -107,4 +107,19 @@ class MySQLConcentratorTest extends MySQLConcentratorBaseTest
     $this->assertEqual('second', $row['value']);
   }
 
+  function testError()
+  {
+    $exception_thrown = false;
+    $db_conn = $this->connect_to_concentrator();
+    try
+    {
+      $result = $db_conn->query("SELECT * FROM bar");
+    }
+    catch (MySQLConcentratorPDOException $e)
+    {
+      $exception_thrown = true;
+    }
+    $this->assertTrue($exception_thrown);
+  }
+
 }

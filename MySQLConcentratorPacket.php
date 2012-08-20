@@ -210,6 +210,15 @@ class MySQLConcentratorPacket
     $this->parse_next_2_byte_integer('status_flags');
   }
 
+  function parse_error()
+  {
+    $this->parse_position = 5;
+    $this->parse_next_2_byte_integer('errno');
+    $this->parse_next_1_byte_integer('sqlstate_marker');
+    $this->attributes['sqlstate'] = substr($this->binary, $this->parse_position, 5);
+    $this->parse_closing_string('message');
+  }
+
   function parse_field()
   {
     $this->type = self::RESPONSE_FIELD;
