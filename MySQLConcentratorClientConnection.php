@@ -34,7 +34,7 @@ class MySQLConcentratorClientConnection extends MySQLConcentratorConnection
   {
     parent::queue_read_packet($packet);
     $method_name = "state_{$this->state}";
-    $this->log("executing state {$this->state} with read packet\n");
+//    $this->log("executing state {$this->state} with read packet\n");
     $this->$method_name($packet);
   }
 
@@ -42,7 +42,7 @@ class MySQLConcentratorClientConnection extends MySQLConcentratorConnection
   {
     $this->write_packets[] = $packet;
     $method_name = "state_{$this->state}";
-    $this->log("executing state {$this->state} with write packet\n");
+//    $this->log("executing state {$this->state} with write packet\n");
     $this->$method_name($packet);
   }
 

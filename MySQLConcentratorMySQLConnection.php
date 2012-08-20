@@ -16,7 +16,7 @@ class MySQLConcentratorMySQLConnection extends MySQLConcentratorConnection
     $this->read_packets();
     if (empty($this->packets_read))
     {
-      $this->log("No packets\n");
+//      $this->log("No packets\n");
       return;
     }
     if ($this->current_client == null)
@@ -38,7 +38,7 @@ class MySQLConcentratorMySQLConnection extends MySQLConcentratorConnection
       $this->current_client->queue_write_packet($packet);
     }
     $this->packets_read = array();
-    $this->log($this->current_client->log_name() . ": " . $this->current_client->state . "\n");
+//    $this->log($this->current_client->log_name() . ": " . $this->current_client->state . "\n");
     if ($this->current_client->done_with_operation())
     {
       $this->current_client->queued = false;
@@ -62,14 +62,14 @@ class MySQLConcentratorMySQLConnection extends MySQLConcentratorConnection
 
   function wants_to_write()
   {
-    if ($this->current_client == NULL)
-    {
-      $this->log("Foo: NULL\n");
-    }
-    else
-    {
-      $this->log("Foo: {$this->current_client->name}:{$this->current_client->address}:{$this->current_client->port}: " . empty($this->current_client->packets_read) . "\n");
-    }
+#    if ($this->current_client == NULL)
+#    {
+#      $this->log("Foo: NULL\n");
+#    }
+#    else
+#    {
+#      $this->log("Foo: {$this->current_client->name}:{$this->current_client->address}:{$this->current_client->port}: " . empty($this->current_client->packets_read) . "\n");
+#    }
     return $this->current_client != NULL && !empty($this->current_client->packets_read);
   }
 
