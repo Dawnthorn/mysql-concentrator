@@ -140,4 +140,11 @@ class MySQLConcentratorPacketTest extends MySQLConcentratorBaseTest
     $this->assertEqual('actions', $packet->attributes['table_name']);
   }
 
+  function testMarshallLittleEndian()
+  {
+    $result = MySQLConcentratorPacket::marshall_little_endian_integer(22, 1);
+    $this->assertEqual("\x16", $result);
+    $result = MySQLConcentratorPacket::marshall_little_endian_integer(280, 2);
+    $this->assertEqual("\x18\x01", $result);
+  }
 }

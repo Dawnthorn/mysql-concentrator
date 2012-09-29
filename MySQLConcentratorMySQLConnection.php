@@ -9,6 +9,7 @@ class MySQLConcentratorMySQLConnection extends MySQLConcentratorConnection
   public $current_client = null;
   public $handshake_completed = false;
   public $handshake_init_packet = null;
+  public $transaction_count = 0;
 
   function read()
   {

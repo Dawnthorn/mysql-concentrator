@@ -136,6 +136,22 @@ class MySQLConcentratorPacket
     return ($this->type >= self::COM_SLEEP && $this->type <= self::COM_DAEMON);
   }
 
+  function is_query()
+  {
+    return ($this->type == self::COM_QUERY);
+  }
+
+  static function marshall_little_endian_integer($value, $length)
+  {
+    $result = '';
+    for ($i = 0; $i < $length; $i++)
+    {
+      $result .= chr($value & 0xff);
+      $value = $value >> 8;
+    }
+    return $result;
+  }
+
   function parse($expected)
   {
     if ($this->parsed)
@@ -337,6 +353,12 @@ class MySQLConcentratorPacket
       $this->parse_position += $length;
     }
     $this->attributes['column_data'] = $result;
+  }
+
+  function replace_statement_with($new_statement)
+  {
+    $old_binary = $this->binary;
+    $this->binary = self::marshall_little_endian_integer(strlen($new_statement) + 1, 3) . chr($this->number) . chr(self::COM_QUERY) . $new_statement;
   }
 
   function type_name()

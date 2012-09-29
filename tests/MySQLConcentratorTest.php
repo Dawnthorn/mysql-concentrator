@@ -122,4 +122,18 @@ class MySQLConcentratorTest extends MySQLConcentratorBaseTest
     $this->assertTrue($exception_thrown);
   }
 
+  function testCommitsOnTwoConnections()
+  {
+    $db_conn_1 = $this->connect_to_concentrator();
+    $db_conn_2 = $this->connect_to_concentrator();
+    $db_conn_1->query("BEGIN");
+    $db_conn_2->query("BEGIN");
+    $db_conn_2->query("INSERT INTO foo (value) VALUES ('second')");
+    $db_conn_2->query("COMMIT");
+    $result = $db_conn_2->query("SELECT * FROM foo WHERE value = 'second'");
+    $this->assertEqual(1, $result->rowCount());
+    $db_conn_1->query("ROLLBACK");
+    $result = $db_conn_2->query("SELECT * FROM foo WHERE value = 'second'");
+    $this->assertEqual(0, $result->rowCount());
+  }
 }

@@ -1,9 +1,11 @@
 <?php
 
 require_once('MySQLConcentratorConnection.php');
+require_once('contrib/php-util/string.php');
 
 class MySQLConcentratorClientConnection extends MySQLConcentratorConnection
 {
+  public $savepoint_name = NULL;
   public $got_first_packet = false;
   public $queued = false;
   public $state = null;
@@ -23,6 +25,7 @@ class MySQLConcentratorClientConnection extends MySQLConcentratorConnection
     {
       $this->mysql_connection->queue($this);
     }
+    $this->savepoint_name = "mysql_conc_{$this->port}";
   }
 
   function done_with_operation()
@@ -52,6 +55,10 @@ class MySQLConcentratorClientConnection extends MySQLConcentratorConnection
     $this->read_packets();
     if (!empty($this->packets_read))
     {
+      foreach ($this->packets_read as $packet)
+      {
+        $this->transform_transaction($packet);
+      }
       $this->mysql_connection->queue($this);
     }
   }
@@ -200,6 +207,51 @@ class MySQLConcentratorClientConnection extends MySQLConcentratorConnection
   {
     throw new MySQLConcentratorFatalException("shouldn't receive any packets in the quit state, but received a '" . $packet->type_name() . "' packet");
     $this->remove_packet($this->packets_read, $packet);
+  }
+
+  function transform_transaction($packet)
+  {
+    if (!$packet->is_query())
+    {
+      return;
+    }
+    $statement = strtoupper(trim($packet->attributes['statement']));;
+    if (string_starts_with($statement, 'BEGIN') || string_starts_with($statement, 'START TRANSACTION'))
+    {
+      if ($statement != 'BEGIN')
+      {
+        throw new MySQLConcentratorFatalException("Currently we can't handle a BEGIN statement with arguments like '$statement'");
+      }
+      if ($this->mysql_connection->transaction_count > 0)
+      {
+        $packet->replace_statement_with("SAVEPOINT {$this->savepoint_name}");
+      }
+      $this->mysql_connection->transaction_count++;
+    }
+    elseif (string_starts_with($statement, 'ROLLBACK') && !string_starts_with($statement, 'ROLLBACK TO SAVEPOINT')) 
+    {
+      if ($statement != 'ROLLBACK')
+      {
+        throw new MySQLConcentratorFatalException("Currently we can't handle a ROLLBACK statement with arguments like '$statement'");
+      }
+      if ($this->mysql_connection->transaction_count > 1)
+      {
+        $packet->replace_statement_with("ROLLBACK TO SAVEPOINT {$this->savepoint_name}");
+      }
+      $this->mysql_connection->transaction_count--;
+    }
+    elseif (string_starts_with($statement, 'COMMIT'))
+    {
+      if ($statement != 'COMMIT')
+      {
+        throw new MySQLConcentratorFatalException("Currently we can't handle a ROLLBACK statement with arguments like '$statement'");
+      }
+      if ($this->mysql_connection->transaction_count > 1)
+      {
+        $packet->replace_statement_with("RELEASE SAVEPOINT {$this->savepoint_name}");
+      }
+      $this->mysql_connection->transaction_count--;
+    }
   }
 
   function wants_to_write()
