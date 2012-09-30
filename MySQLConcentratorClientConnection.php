@@ -238,7 +238,10 @@ class MySQLConcentratorClientConnection extends MySQLConcentratorConnection
       {
         $packet->replace_statement_with("ROLLBACK TO SAVEPOINT {$this->savepoint_name}");
       }
-      $this->mysql_connection->transaction_count--;
+      if ($this->mysql_connection->transaction_count > 0)
+      {
+        $this->mysql_connection->transaction_count--;
+      }
     }
     elseif (string_starts_with($statement, 'COMMIT'))
     {
