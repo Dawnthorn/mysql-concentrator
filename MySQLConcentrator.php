@@ -1,5 +1,6 @@
 <?php
 
+require_once('contrib/php-util/array.php');
 require_once('MySQLConcentratorClientConnection.php');
 require_once('MySQLConcentratorConnection.php');
 require_once('MySQLConcentratorLog.php');
@@ -21,7 +22,7 @@ class MySQLConcentrator
   public static $original_error_handler = NULL;
   public static $error_handler_set = FALSE;
 
-  function __construct()
+  function __construct($settings = array())
   {
     if (!self::$error_handler_set)
     {
@@ -30,6 +31,8 @@ class MySQLConcentrator
       self::$original_error_handler = set_error_handler(array('MySQLConcentrator', 'error_handler'));
     }
     $this->log = new MySQLConcentratorLog($this->log_file_name);
+    $this->mysql_address = array_fetch($settings, 'host', $this->mysql_address);
+    $this->mysql_port = array_fetch($settings, 'port', $this->mysql_port);
   }
 
   function create_mysql_connection()
