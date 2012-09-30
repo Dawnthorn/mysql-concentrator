@@ -250,7 +250,10 @@ class MySQLConcentratorClientConnection extends MySQLConcentratorConnection
       {
         $packet->replace_statement_with("RELEASE SAVEPOINT {$this->savepoint_name}");
       }
-      $this->mysql_connection->transaction_count--;
+      if ($this->mysql_connection->transaction_count > 0)
+      {
+        $this->mysql_connection->transaction_count--;
+      }
     }
   }
 
