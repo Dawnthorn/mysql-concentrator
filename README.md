@@ -55,7 +55,7 @@ Behat tests in the Behat Context class:
       $this->db->exec("CREATE TABLE automated_testing (pristine INTEGER)");
       $this->db->exec("INSERT INTO automated_testing VALUES (1)");
       $this->db->exec("BEGIN");
-      $this->db->exec("INSERT INTO automated_testing VALUES (0)");
+      $this->db->exec("UPDATE automated_testing SET pristine = 0");
     }
 
     /**
