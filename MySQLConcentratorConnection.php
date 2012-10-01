@@ -26,9 +26,9 @@ class MySQLConcentratorConnection
     $this->connected = $connected;
     $this->name = $name;
     $this->port = $port;
-    $this->read_buffer = new MySQLConcentratorBuffer();
+    $this->read_buffer = new MySQLConcentratorBuffer('', 16 * 1024 * 1024);
     $this->socket = $socket;
-    $this->write_buffer = new MySQLConcentratorBuffer();
+    $this->write_buffer = new MySQLConcentratorBuffer('', 16 * 1024 * 1024);
     if ($address == NULL)
     {
       $this->get_socket_info();
