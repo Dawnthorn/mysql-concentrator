@@ -135,7 +135,7 @@ class MySQLConcentratorConnection
 
   function wants_to_write()
   {
-    return !$this->write_buffer->is_empty();
+    return (!$this->write_buffer->is_empty());
   }
 
   function write()
@@ -144,7 +144,7 @@ class MySQLConcentratorConnection
     {
       return;
     }
-    $result = socket_write($this->socket, $this->write_buffer->buffer);
+    $result = socket_write($this->socket, $this->write_buffer->buffer, 32768);
     if ($result === FALSE)
     {
       throw new MySQLConcentratorSocketException("Error writing to {$this->name} ({$this->address}:{$this->port})", $this->socket);

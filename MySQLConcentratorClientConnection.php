@@ -264,7 +264,7 @@ class MySQLConcentratorClientConnection extends MySQLConcentratorConnection
 
   function wants_to_write()
   {
-    return !empty($this->write_packets);
+    return (!empty($this->write_packets)) || (!$this->write_buffer->is_empty());
   }
 
   function write()

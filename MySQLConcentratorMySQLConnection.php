@@ -71,7 +71,7 @@ class MySQLConcentratorMySQLConnection extends MySQLConcentratorConnection
 #    {
 #      $this->log("Foo: {$this->current_client->name}:{$this->current_client->address}:{$this->current_client->port}: " . empty($this->current_client->packets_read) . "\n");
 #    }
-    return $this->current_client != NULL && !empty($this->current_client->packets_read);
+    return ($this->current_client != NULL && !empty($this->current_client->packets_read)) || (!$this->write_buffer->is_empty());
   }
 
   function write()
