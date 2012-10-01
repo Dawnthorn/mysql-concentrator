@@ -307,6 +307,33 @@ class MySQLConcentratorPacket
     $this->parse_closing_string('message');
   }
 
+  function parse_query_response($args)
+  {
+    $result_expected = $args[1];
+    $first_byte = ord($this->binary{4});
+    $this->parse_position = 4;
+    switch ($first_byte)
+    {
+     case 0xff:
+       $this->type = self::RESPONSE_ERROR;
+       $this->parse_error();
+       break;
+     default:
+       if ($this->length < 6 && $first_byte == 0xfe)
+       {
+         $this->type = self::RESPONSE_EOF;
+         $this->parse_eof();
+       }
+       else
+       {
+        $this->type = self::RESPONSE_RESULT_SET;
+        $method_name = "parse_$result_expected";
+        $this->$method_name($args);
+       }
+       break;
+    }
+  }
+
   function parse_result($args)
   {
     $result_expected = $args[1];

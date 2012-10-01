@@ -119,7 +119,7 @@ class MySQLConcentratorClientConnection extends MySQLConcentratorConnection
 
   function state_waiting_for_field($packet)
   {
-    $packet->parse('result', 'field');
+    $packet->parse('query_response', 'field');
     switch ($packet->type)
     {
       case MySQLConcentratorPacket::RESPONSE_ERROR:
@@ -170,7 +170,9 @@ class MySQLConcentratorClientConnection extends MySQLConcentratorConnection
 
   function state_waiting_for_row_data($packet)
   {
-    $packet->parse('result', 'row_data', $this->num_fields);
+    $first_byte = ord($packet->binary{4});
+    $packet->parse('query_response', 'row_data', $this->num_fields);
+
     switch ($packet->type)
     {
       case MySQLConcentratorPacket::RESPONSE_ERROR:
