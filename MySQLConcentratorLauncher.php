@@ -22,9 +22,11 @@ class MySQLConcentratorLauncher
     }
     elseif ($this->concentrator_pid == 0)
     {
-      $mysql_concentrator = new MySQLConcentrator($this->settings);
-      $mysql_concentrator->run();
-      exit;
+      $cmd = "/usr/bin/php";
+      $args = array("mysql_concentrator.php", "-h", $this->settings['host'], '-p', $this->settings['port']);
+      chdir(dirname(__FILE__));
+      pcntl_exec("/usr/bin/php", $args);
+      throw new Exception("Error executing '$cmd " . implode(" ", $args) . "'");
     }
   }
 
