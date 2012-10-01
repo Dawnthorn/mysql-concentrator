@@ -7,7 +7,7 @@ class MySQLConcentratorBuffer
   public $buffer;
   public $max_size;
 
-  public function __construct($initial_data = '', $max_size = 4906)
+  public function __construct($initial_data = '', $max_size = 4096)
   {
     $this->buffer = $initial_data;
     $this->max_size = $max_size;
@@ -15,9 +15,9 @@ class MySQLConcentratorBuffer
 
   public function append($data)
   {
-    if (count($data) > $this->space_remaining())
+    if (strlen($data) > $this->space_remaining())
     {
-      throw new MySQLConcentratorBufferException("Can't append '$data' to buffer because data is " . count($data) . " bytes long and there is only space remaining for " . $this->space_remaining() . ".");
+      throw new MySQLConcentratorBufferException("Can't append '" . hex_dump(substr($data, 0, 10)) . "...' to buffer because data is " . strlen($data) . " bytes long and there is only space remaining for " . $this->space_remaining() . ".");
     }
     $this->buffer .= $data;
   }
