@@ -260,6 +260,10 @@ class MySQLConcentratorClientConnection extends MySQLConcentratorConnection
         $this->mysql_connection->transaction_count--;
       }
     }
+    elseif (preg_match("/SET\s*AUTOCOMMIT.*/", $statement))
+    {
+      $packet->replace_statement_with("SET AUTOCOMMIT=0");
+    }
   }
 
   function wants_to_write()
