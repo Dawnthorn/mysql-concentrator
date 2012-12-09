@@ -39,7 +39,7 @@ class MySQLConcentrator
   {
     $socket = $this->create_socket("mysql socket", '0.0.0.0');
     $this->mysql_connection = new MySQLConcentratorMySQLConnection($this, "mysql socket", $socket, FALSE, $this->mysql_address, $this->mysql_port);
-    $this->connections[$socket] = $this->mysql_connection;
+    $this->connections[] = $this->mysql_connection;
   }
 
   function create_socket($socket_name, $address, $port = 0)
@@ -80,6 +80,18 @@ class MySQLConcentrator
     }
   }
 
+  function get_connection_for_socket($socket)
+  {
+    foreach ($this->connections as $connection)
+    {
+      if ($connection->socket == $socket)
+      {
+	return $connection;
+      }
+    }
+    return NULL;
+  }
+
   function listen()
   {
     $this->listen_socket = $this->create_socket("listen socket", $this->listen_address, $this->listen_port);
@@ -88,6 +100,12 @@ class MySQLConcentrator
     {
       throw new MySQLConcentratorSocketException("Error listening to listen socket on {$this->listen_address}:{$this->listen_port}", $this->listen_socket);
     }
+  }
+
+  function remove_connection($connection_to_delete)
+  {
+    $index = array_search($connection_to_delete, $this->connections);
+    unset($this->connections[$index]);
   }
 
   function run()
@@ -117,7 +135,7 @@ class MySQLConcentrator
       {
         foreach ($write_sockets as $write_socket)
         {
-          $connection = $this->connections[$write_socket];
+          $connection = $this->get_connection_for_socket($write_socket);
           $connection->write();
         }
         foreach ($read_sockets as $read_socket)
@@ -134,15 +152,15 @@ class MySQLConcentrator
               $this->create_mysql_connection();
             }
             $client_connection = new MySQLConcentratorClientConnection($this, "client", $socket, TRUE);
-            $this->connections[$socket] = $client_connection;
+            $this->connections[] = $client_connection;
           }
           else
           {
-            $connection = $this->connections[$read_socket];
+            $connection = $this->get_connection_for_socket($read_socket);
             $connection->read();
             if ($connection->closed)
-            {
-              unset($this->connections[$read_socket]);
+	    {
+	      $this->remove_connection($connection);
             }
           }
         }
