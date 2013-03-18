@@ -19,6 +19,9 @@ class MySQLConcentrator
   public $mysql_connection;
   public $mysql_address = '127.0.0.1';
   public $mysql_port = 3306;
+  public $check_for_implicit_commits = TRUE;
+  public $throw_exception_on_implicit_commits = TRUE;
+  public $transform_truncates = TRUE;
   public static $original_error_handler = NULL;
   public static $error_handler_set = FALSE;
 

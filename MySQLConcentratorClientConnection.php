@@ -11,6 +11,45 @@ class MySQLConcentratorClientConnection extends MySQLConcentratorConnection
   public $state = null;
   public $mysql_connection;
   public $write_packets = array();
+  static $statements_that_cause_implicit_commits = array
+  (
+    'ALTER DATABASE',
+    'ALTER EVENT',
+    'ALTER PROCEDURE',
+    'ALTER SERVER',
+    'ALTER TABLE',
+    'CREATE DATABASE',
+    'CREATE EVENT',
+    'CREATE INDEX',
+    'CREATE PROCEDURE',
+    'CREATE SERVER',
+    'CREATE TABLE',
+    'DROP DATABASE',
+    'DROP EVENT',
+    'DROP INDEX',
+    'DROP PROCEDURE',
+    'DROP SERVER',
+    'DROP TABLE',
+    'RENAME TABLE',
+    'TRUNCATE TABLE',
+    'ALTER FUNCTION',
+    'CREATE FUNCTION',
+    'DROP FUNCTION',
+    'CREATE USER',
+    'DROP USER',
+    'RENAME USER',
+    'GRANT',
+    'REVOKE',
+    'SET PASSWORD',
+    'LOCK TABLES',
+    'UNLOCK TABLES',
+    'CACHE INDEX',
+    'LOAD INDEX INTO CACHE',
+    'ANALYZE TABLE',
+    'CHECK TABLE',
+    'OPTIMIZE TABLE',
+    'REPAIR TABLE',
+  );
 
   function __construct($concentrator, $name, $socket, $connected, $address = NULL, $port = NULL)
   {
@@ -26,6 +65,21 @@ class MySQLConcentratorClientConnection extends MySQLConcentratorConnection
       $this->mysql_connection->queue($this);
     }
     $this->savepoint_name = "mysql_conc_{$this->port}";
+  }
+
+  function check_for_implicit_commit($statement)
+  {
+    foreach (self::$statements_that_cause_implicit_commits as $implicit_commit_statement)
+    {
+      if (string_starts_with($statement, $implicit_commit_statement))
+      {
+	$this->log("WARNING: A statement that causes an implicit commit was called within a transaction:\n$statement\n");
+	if ($this->concentrator->throw_exception_on_implicit_commits)
+	{
+	  throw new MySQLConcentratorFatalException("A statement that causes and implicit commit was called within a transaction:\n$statement\n");
+	} 
+      }
+    }
   }
 
   function done_with_operation()
@@ -218,6 +272,21 @@ class MySQLConcentratorClientConnection extends MySQLConcentratorConnection
       return;
     }
     $statement = strtoupper(trim($packet->attributes['statement']));;
+    if ($this->concentrator->check_for_implicit_commits)
+    {
+      if ($this->mysql_connection->transaction_count > 0)
+      {
+	if ($this->concentrator->transform_truncates && string_starts_with($statement, 'TRUNCATE TABLE'))
+	{
+	  $new_statement = preg_replace("/TRUNCATE TABLE(.*)/i", 'DELETE FROM$1', $packet->attributes['statement']);
+	  $packet->replace_statement_with($new_statement);
+	}
+	else
+	{
+	  $this->check_for_implicit_commit($statement);
+	}
+      }
+    }
     if (string_starts_with($statement, 'BEGIN') || string_starts_with($statement, 'START TRANSACTION'))
     {
       if ($statement != 'BEGIN')
