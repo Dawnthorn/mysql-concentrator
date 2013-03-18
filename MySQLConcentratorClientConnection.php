@@ -289,7 +289,7 @@ class MySQLConcentratorClientConnection extends MySQLConcentratorConnection
     }
     if (string_starts_with($statement, 'BEGIN') || string_starts_with($statement, 'START TRANSACTION'))
     {
-      if ($statement != 'BEGIN')
+      if ($statement != 'BEGIN' && $statement != 'START TRANSACTION')
       {
         throw new MySQLConcentratorFatalException("Currently we can't handle a BEGIN statement with arguments like '$statement'");
       }
