@@ -31,7 +31,7 @@ class MySQLConcentratorClientConnection extends MySQLConcentratorConnection
     'DROP SERVER',
     'DROP TABLE',
     'RENAME TABLE',
-    'TRUNCATE TABLE',
+    'TRUNCATE',
     'ALTER FUNCTION',
     'CREATE FUNCTION',
     'DROP FUNCTION',
@@ -276,9 +276,9 @@ class MySQLConcentratorClientConnection extends MySQLConcentratorConnection
     {
       if ($this->mysql_connection->transaction_count > 0)
       {
-	if ($this->concentrator->transform_truncates && string_starts_with($statement, 'TRUNCATE TABLE'))
+	if ($this->concentrator->transform_truncates && string_starts_with($statement, 'TRUNCATE'))
 	{
-	  $new_statement = preg_replace("/TRUNCATE TABLE(.*)/i", 'DELETE FROM$1', $packet->attributes['statement']);
+	  $new_statement = preg_replace("/TRUNCATE( TABLE)?(.*)/i", 'DELETE FROM$2', $packet->attributes['statement']);
 	  $packet->replace_statement_with($new_statement);
 	}
 	else
