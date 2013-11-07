@@ -1,0 +1,10 @@
+{
+  "authors": [
+    {"name": "Peter Haight", "email": "peterh@giantrabbit.com"},
+  ],
+  "description": "A MySQL proxy server written in PHP",
+  "homepage": "https://github.com/giant-rabbit/mysql-concentrator",
+  "license": "MIT",
+  "name": "giant-rabbit/mysql-concentrator",
+  "version": "1.0.0",
+}
