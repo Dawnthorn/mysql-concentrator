@@ -1,8 +1,8 @@
 <?php
 
-class MySQLConcentratorBufferException extends Exception {}
+namespace MySQLConcentrator;
 
-class MySQLConcentratorBuffer
+class Buffer
 {
   public $buffer;
   public $max_size;

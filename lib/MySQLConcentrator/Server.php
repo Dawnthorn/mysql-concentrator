@@ -1,15 +1,8 @@
 <?php
 
-require_once('contrib/php-util/array.php');
-require_once('MySQLConcentratorClientConnection.php');
-require_once('MySQLConcentratorConnection.php');
-require_once('MySQLConcentratorLog.php');
-require_once('MySQLConcentratorMySQLConnection.php');
-require_once('MySQLConcentratorSocket.php');
+namespace MySQLConcentrator;
 
-class MySQLConcentratorFatalException extends Exception {}
-
-class MySQLConcentrator
+class Server
 {
   public $connections = array();
   public $listen_socket;
@@ -31,17 +24,17 @@ class MySQLConcentrator
     {
       error_reporting(E_ALL);
       self::$error_handler_set = TRUE;
-      self::$original_error_handler = set_error_handler(array('MySQLConcentrator', 'error_handler'));
+      self::$original_error_handler = set_error_handler(array('MySQLConcentrator\Server', 'error_handler'));
     }
-    $this->log = new MySQLConcentratorLog($this->log_file_name);
-    $this->mysql_address = array_fetch($settings, 'host', $this->mysql_address);
-    $this->mysql_port = array_fetch($settings, 'port', $this->mysql_port);
+    $this->log = new Log($this->log_file_name);
+    $this->mysql_address = \GR\Hash::fetch($settings, 'host', $this->mysql_address);
+    $this->mysql_port = \GR\Hash::fetch($settings, 'port', $this->mysql_port);
   }
 
   function create_mysql_connection()
   {
     $socket = $this->create_socket("mysql socket", '0.0.0.0');
-    $this->mysql_connection = new MySQLConcentratorMySQLConnection($this, "mysql socket", $socket, FALSE, $this->mysql_address, $this->mysql_port);
+    $this->mysql_connection = new MySQLConnection($this, "mysql socket", $socket, FALSE, $this->mysql_address, $this->mysql_port);
     $this->connections[] = $this->mysql_connection;
   }
 
@@ -50,22 +43,22 @@ class MySQLConcentrator
     $socket = @socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
     if ($socket === FALSE)
     {
-      throw new MySQLConcentratorSocketException("Error creating $socket_name socket", $socket);
+      throw new SocketException("Error creating $socket_name socket", $socket);
     }
     $result = @socket_set_nonblock($socket);
     if ($result === FALSE)
     {
-      throw new MySQLConcentratorSocketException("Error setting $socket_name socket nonblocking", $socket);
+      throw new SocketException("Error setting $socket_name socket nonblocking", $socket);
     }
     $result = @socket_set_option($socket, SOL_SOCKET, SO_REUSEADDR, 1);
     if ($result === FALSE)
     {
-      throw new MySQLConcentratorSocketException("Error setting option SOL_SOCKET SO_REUSEADDR to 1 for $socket_name socket", $socket);
+      throw new SocketException("Error setting option SOL_SOCKET SO_REUSEADDR to 1 for $socket_name socket", $socket);
     }
     $result = @socket_bind($socket, $address, $port);
     if ($result === FALSE)
     {
-      throw new MySQLConcentratorSocketException("Error binding $socket_name socket to {$address}:{$port}", $socket);
+      throw new SocketException("Error binding $socket_name socket to {$address}:{$port}", $socket);
     }
     return $socket;
   }
@@ -79,7 +72,7 @@ class MySQLConcentrator
     }
     if ((error_reporting() & $errno) > 0)
     {
-      throw new MySQLConcentratorFatalException("$errno: $errstr: $errfile: $errline");
+      throw new FatalException("$errno: $errstr: $errfile: $errline");
     }
   }
 
@@ -101,7 +94,7 @@ class MySQLConcentrator
     $result = @socket_listen($this->listen_socket);
     if ($result === FALSE)
     {
-      throw new MySQLConcentratorSocketException("Error listening to listen socket on {$this->listen_address}:{$this->listen_port}", $this->listen_socket);
+      throw new SocketException("Error listening to listen socket on {$this->listen_address}:{$this->listen_port}", $this->listen_socket);
     }
   }
 
@@ -132,7 +125,7 @@ class MySQLConcentrator
       $num_changed_sockets = @socket_select($read_sockets, $write_sockets, $exception_sockets, NULL);
       if ($num_changed_sockets === FALSE)
       {
-        throw new MySQLConcentratorSocketException("Error selecting on read sockets " . print_r($read_sockets, TRUE) . ", write sockets " . print_r($write_sockets, TRUE), FALSE);
+        throw new SocketException("Error selecting on read sockets " . print_r($read_sockets, TRUE) . ", write sockets " . print_r($write_sockets, TRUE), FALSE);
       }
       elseif ($num_changed_sockets > 0)
       {
@@ -148,13 +141,13 @@ class MySQLConcentrator
             $socket = socket_accept($this->listen_socket);
             if ($socket === FALSE)
             {
-              throw new MySQLConcentratorSocketException("Error accepting connection on listen socket", $this->listen_socket);
+              throw new SocketException("Error accepting connection on listen socket", $this->listen_socket);
             }
             if ($this->mysql_connection == NULL)
             {
               $this->create_mysql_connection();
             }
-            $client_connection = new MySQLConcentratorClientConnection($this, "client", $socket, TRUE);
+            $client_connection = new ClientConnection($this, "client", $socket, TRUE);
             $this->connections[] = $client_connection;
           }
           else

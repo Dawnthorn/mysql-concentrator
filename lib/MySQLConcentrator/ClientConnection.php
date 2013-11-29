@@ -1,9 +1,8 @@
 <?php
 
-require_once('MySQLConcentratorConnection.php');
-require_once('contrib/php-util/string.php');
+namespace MySQLConcentrator;
 
-class MySQLConcentratorClientConnection extends MySQLConcentratorConnection
+class ClientConnection extends Connection
 {
   public $savepoint_name = NULL;
   public $got_first_packet = false;
@@ -71,12 +70,12 @@ class MySQLConcentratorClientConnection extends MySQLConcentratorConnection
   {
     foreach (self::$statements_that_cause_implicit_commits as $implicit_commit_statement)
     {
-      if (string_starts_with($statement, $implicit_commit_statement))
+      if (\GR\Str::starts_with($statement, $implicit_commit_statement))
       {
 	$this->log("WARNING: A statement that causes an implicit commit was called within a transaction:\n$statement\n");
 	if ($this->concentrator->throw_exception_on_implicit_commits)
 	{
-	  throw new MySQLConcentratorFatalException("A statement that causes and implicit commit was called within a transaction:\n$statement\n");
+	  throw new FatalException("A statement that causes and implicit commit was called within a transaction:\n$statement\n");
 	} 
       }
     }
@@ -140,9 +139,9 @@ class MySQLConcentratorClientConnection extends MySQLConcentratorConnection
   function state_waiting_for_auth_response($packet)
   {
     $packet->parse('result', 'ok');
-    if ($packet->type != MySQLConcentratorPacket::RESPONSE_OK)
+    if ($packet->type != Packet::RESPONSE_OK)
     {
-      throw new MySQLConcentratorFatalException("tried to queue a '" . $packet->type_name() . "' packet, but should be queuing an ok response to the client authentication packet");
+      throw new FatalException("tried to queue a '" . $packet->type_name() . "' packet, but should be queuing an ok response to the client authentication packet");
     }
     else
     {
@@ -155,15 +154,15 @@ class MySQLConcentratorClientConnection extends MySQLConcentratorConnection
     $packet->parse('command');
     if (!$packet->is_command())
     {
-      throw new MySQLConcentratorFatalException("In waiting for command state, expecting a command packet, but got a '" . $packet->type_name() . "' packet");
+      throw new FatalException("In waiting for command state, expecting a command packet, but got a '" . $packet->type_name() . "' packet");
     }
     switch ($packet->type)
     {
-      case MySQLConcentratorPacket::COM_QUIT:
+      case Packet::COM_QUIT:
         $this->remove_packet($this->packets_read, $packet);
         $this->state = 'quit';
         break;
-      case MySQLConcentratorPacket::COM_SET_OPTION:
+      case Packet::COM_SET_OPTION:
         $this->state = 'waiting_for_set_option_response';
         break;
       default:
@@ -176,25 +175,25 @@ class MySQLConcentratorClientConnection extends MySQLConcentratorConnection
     $packet->parse('query_response', 'field');
     switch ($packet->type)
     {
-      case MySQLConcentratorPacket::RESPONSE_ERROR:
+      case Packet::RESPONSE_ERROR:
         $this->state = 'waiting_for_command';
         break;
-      case MySQLConcentratorPacket::RESPONSE_FIELD:
+      case Packet::RESPONSE_FIELD:
         $this->state = 'waiting_for_field';
         break;
-      case MySQLConcentratorPacket::RESPONSE_EOF:
+      case Packet::RESPONSE_EOF:
         $this->state = 'waiting_for_row_data';
         break;
       default:
-        throw new MySQLConcentratorFatalException("expecting a field response or an eof response, but got a '" . $packet->type_name() . "' packet");
+        throw new FatalException("expecting a field response or an eof response, but got a '" . $packet->type_name() . "' packet");
     }
   }
 
   function state_waiting_for_handshake($packet)
   {
-    if ($packet->type != MySQLConcentratorPacket::HANDSHAKE_INITIALIZATION_PACKET)
+    if ($packet->type != Packet::HANDSHAKE_INITIALIZATION_PACKET)
     {
-      throw new MySQLConcentratorFatalException("tried to queue a " . $packet->type_name() . "' packet, but should be queuing a handshake initization packet");
+      throw new FatalException("tried to queue a " . $packet->type_name() . "' packet, but should be queuing a handshake initization packet");
     }
     else
     {
@@ -207,18 +206,18 @@ class MySQLConcentratorClientConnection extends MySQLConcentratorConnection
     $packet->parse('result', 'result_set');
     switch ($packet->type)
     {
-      case MySQLConcentratorPacket::RESPONSE_OK:
+      case Packet::RESPONSE_OK:
         $this->state = 'waiting_for_command';
         break;
-      case MySQLConcentratorPacket::RESPONSE_ERROR:
+      case Packet::RESPONSE_ERROR:
         $this->state = 'waiting_for_command';
         break;
-      case MySQLConcentratorPacket::RESPONSE_RESULT_SET:
+      case Packet::RESPONSE_RESULT_SET:
         $this->num_fields = $packet->attributes['field_count'];
         $this->state = 'waiting_for_field';
         break;
       default:
-        throw new MySQLConcentratorFatalException("expecting an error or result set packet after command in waiting for result state, but got a '" . $packet->type_name() . "' packet");
+        throw new FatalException("expecting an error or result set packet after command in waiting for result state, but got a '" . $packet->type_name() . "' packet");
     }
   }
 
@@ -229,17 +228,17 @@ class MySQLConcentratorClientConnection extends MySQLConcentratorConnection
 
     switch ($packet->type)
     {
-      case MySQLConcentratorPacket::RESPONSE_ERROR:
+      case Packet::RESPONSE_ERROR:
         $this->state = 'waiting_for_command';
         break;
-      case MySQLConcentratorPacket::RESPONSE_ROW_DATA:
+      case Packet::RESPONSE_ROW_DATA:
         $this->state = 'waiting_for_row_data';
         break;
-      case MySQLConcentratorPacket::RESPONSE_EOF:
+      case Packet::RESPONSE_EOF:
         $this->state = 'waiting_for_command';
         break;
       default:
-        throw new MySQLConcentratorFatalException("expecting a row data response or an eof response, but got a '" . $packet->type_name() . "' packet");
+        throw new FatalException("expecting a row data response or an eof response, but got a '" . $packet->type_name() . "' packet");
     }
   }
 
@@ -248,20 +247,20 @@ class MySQLConcentratorClientConnection extends MySQLConcentratorConnection
     $packet->parse('result', 'eof');
     switch ($packet->type)
     {
-      case MySQLConcentratorPacket::RESPONSE_ERROR:
+      case Packet::RESPONSE_ERROR:
         $this->state = 'waiting_for_command';
         break;
-      case MySQLConcentratorPacket::RESPONSE_EOF:
+      case Packet::RESPONSE_EOF:
         $this->state = 'waiting_for_command';
         break;
       default:
-        throw new MySQLConcentratorFatalException("expecting a an eof response to set_option, but got a '" . $packet->type_name() . "' packet");
+        throw new FatalException("expecting a an eof response to set_option, but got a '" . $packet->type_name() . "' packet");
     }
   }
 
   function state_quit($packet)
   {
-    throw new MySQLConcentratorFatalException("shouldn't receive any packets in the quit state, but received a '" . $packet->type_name() . "' packet");
+    throw new FatalException("shouldn't receive any packets in the quit state, but received a '" . $packet->type_name() . "' packet");
     $this->remove_packet($this->packets_read, $packet);
   }
 
@@ -276,7 +275,7 @@ class MySQLConcentratorClientConnection extends MySQLConcentratorConnection
     {
       if ($this->mysql_connection->transaction_count > 0)
       {
-	if ($this->concentrator->transform_truncates && string_starts_with($statement, 'TRUNCATE'))
+	if ($this->concentrator->transform_truncates && \GR\Str::starts_with($statement, 'TRUNCATE'))
 	{
 	  $new_statement = preg_replace("/TRUNCATE( TABLE)?(.*)/i", 'DELETE FROM$2', $packet->attributes['statement']);
 	  $packet->replace_statement_with($new_statement);
@@ -287,11 +286,11 @@ class MySQLConcentratorClientConnection extends MySQLConcentratorConnection
 	}
       }
     }
-    if (string_starts_with($statement, 'BEGIN') || string_starts_with($statement, 'START TRANSACTION'))
+    if (\GR\Str::starts_with($statement, 'BEGIN') || \Gr\Str::starts_with($statement, 'START TRANSACTION'))
     {
       if ($statement != 'BEGIN' && $statement != 'START TRANSACTION')
       {
-        throw new MySQLConcentratorFatalException("Currently we can't handle a BEGIN statement with arguments like '$statement'");
+        throw new FatalException("Currently we can't handle a BEGIN statement with arguments like '$statement'");
       }
       if ($this->mysql_connection->transaction_count > 0)
       {
@@ -299,11 +298,11 @@ class MySQLConcentratorClientConnection extends MySQLConcentratorConnection
       }
       $this->mysql_connection->transaction_count++;
     }
-    elseif (string_starts_with($statement, 'ROLLBACK') && !string_starts_with($statement, 'ROLLBACK TO SAVEPOINT')) 
+    elseif (\GR\Str::starts_with($statement, 'ROLLBACK') && !\GR\Str::starts_with($statement, 'ROLLBACK TO SAVEPOINT')) 
     {
       if ($statement != 'ROLLBACK')
       {
-        throw new MySQLConcentratorFatalException("Currently we can't handle a ROLLBACK statement with arguments like '$statement'");
+        throw new FatalException("Currently we can't handle a ROLLBACK statement with arguments like '$statement'");
       }
       if ($this->mysql_connection->transaction_count > 1)
       {
@@ -314,11 +313,11 @@ class MySQLConcentratorClientConnection extends MySQLConcentratorConnection
         $this->mysql_connection->transaction_count--;
       }
     }
-    elseif (string_starts_with($statement, 'COMMIT'))
+    elseif (\GR\Str::starts_with($statement, 'COMMIT'))
     {
       if ($statement != 'COMMIT')
       {
-        throw new MySQLConcentratorFatalException("Currently we can't handle a ROLLBACK statement with arguments like '$statement'");
+        throw new FatalException("Currently we can't handle a ROLLBACK statement with arguments like '$statement'");
       }
       if ($this->mysql_connection->transaction_count > 1)
       {

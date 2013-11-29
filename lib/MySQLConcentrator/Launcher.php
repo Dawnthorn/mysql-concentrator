@@ -1,8 +1,8 @@
 <?php
 
-require_once('MySQLConcentrator.php');
+namespace MySQLConcentrator;
 
-class MySQLConcentratorLauncher
+class Launcher
 {
   public $concentrator_pid = null;
   public $settings = null;

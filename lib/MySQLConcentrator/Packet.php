@@ -1,8 +1,8 @@
 <?php
 
-require_once(dirname(__FILE__) . "/MySQLConcentratorHex.php");
+namespace MySQLConcentrator;
 
-class MySQLConcentratorPacket
+class Packet
 {
   const HANDSHAKE_INITIALIZATION_PACKET = 0xffff;
   const CLIENT_AUTHENTICATION_PACKET = 0xfffe;
@@ -172,7 +172,7 @@ class MySQLConcentratorPacket
 
   function parse_null_terminated_string($attribute_name)
   {
-    list($result, $length) = MySQLConcentratorPacket::unmarshall_null_terminated_string(substr($this->binary, $this->parse_position));
+    list($result, $length) = Packet::unmarshall_null_terminated_string(substr($this->binary, $this->parse_position));
     $this->attributes[$attribute_name] = substr($this->binary, $this->parse_position, $length - 1);
     $this->parse_position += $length;
   }

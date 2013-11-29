@@ -1,6 +1,6 @@
 <?php
 
-require_once('MySQLConcentrator.php');
+require_once('vendor/autoload.php');
 
 class TestLauncher
 {
@@ -22,7 +22,7 @@ class TestLauncher
     }
     elseif ($this->concentrator_pid == 0)
     {
-      $mysql_concentrator = new MySQLConcentrator();
+      $mysql_concentrator = new MySQLConcentrator\Server();
       $mysql_concentrator->run();
       exit;
     }

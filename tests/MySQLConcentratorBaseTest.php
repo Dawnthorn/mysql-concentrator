@@ -1,6 +1,7 @@
 <?php
+
+require_once('vendor/autoload.php');
 require_once(dirname(__FILE__) . "/simpletest/autorun.php");
-require_once(dirname(__FILE__) . "/../MySQLConcentratorLog.php");
 
 class MySQLConcentratorBaseTest extends UnitTestCase
 {
@@ -12,6 +13,6 @@ class MySQLConcentratorBaseTest extends UnitTestCase
   function setUp()
   {
     parent::setUp();
-    $this->log = new MySQLConcentratorLog("test.log");
+    $this->log = new MySQLConcentrator\Log("test.log");
   }
 }

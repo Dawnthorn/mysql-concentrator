@@ -1,6 +1,6 @@
 <?php
 
-require_once('MySQLConcentrator.php');
+require_once('vendor/autoload.php');
 
 function write_error($msg)
 {
@@ -27,7 +27,7 @@ if ($exit_status == 0)
     'host' => $options['h'],
     'port' => $options['p'],
   );
-  $mysql_concentrator = new MySQLConcentrator();
+  $mysql_concentrator = new MySQLConcentrator\Server();
   $mysql_concentrator->run();
 }
 exit($exit_status);

@@ -1,9 +1,8 @@
 <?php
+
+require_once('vendor/autoload.php');
 require_once(dirname(__FILE__) . "/simpletest/autorun.php");
 require_once(dirname(__FILE__) . "/MySQLConcentratorBaseTest.php");
-require_once(dirname(__FILE__) . "/../MySQLConcentrator.php");
-require_once(dirname(__FILE__) . "/../MySQLConcentratorPDO.php");
-
 
 class MySQLConcentratorTest extends MySQLConcentratorBaseTest
 {
@@ -39,7 +38,7 @@ class MySQLConcentratorTest extends MySQLConcentratorBaseTest
   function connect_to_concentrator()
   {
     $database_config = $this->databases_config['test'];
-    $connection = new MySQLConcentratorPDO($this->concentrator_dsn, $database_config['user_name'], $database_config['password']);
+    $connection = new MySQLConcentrator\PDO($this->concentrator_dsn, $database_config['user_name'], $database_config['password']);
     return $connection;
   }
 
@@ -53,7 +52,7 @@ class MySQLConcentratorTest extends MySQLConcentratorBaseTest
     }
     $database_config = $this->databases_config['test'];
     $this->dsn = $this->build_dsn($database_config);
-    $this->db = new MySQLConcentratorPDO($this->dsn, $database_config['user_name'], $database_config['password']);
+    $this->db = new MySQLConcentrator\PDO($this->dsn, $database_config['user_name'], $database_config['password']);
     $this->db->query("DROP TABLE IF EXISTS foo");
     $this->db->query("CREATE TABLE foo (id INTEGER AUTO_INCREMENT PRIMARY KEY, value VARCHAR(255))");
     $this->db->query("INSERT INTO foo (value) VALUES ('first')");
@@ -115,7 +114,7 @@ class MySQLConcentratorTest extends MySQLConcentratorBaseTest
     {
       $result = $db_conn->query("SELECT * FROM bar");
     }
-    catch (MySQLConcentratorPDOException $e)
+    catch (MySQLConcentrator\PDOException $e)
     {
       $exception_thrown = true;
     }
@@ -184,6 +183,7 @@ class MySQLConcentratorTest extends MySQLConcentratorBaseTest
     $db_conn_1->query("ROLLBACK");
     $result = $db_conn_2->query("SELECT * FROM foo WHERE value = 'second'");
     $this->assertEqual(0, $result->rowCount());
+    $db_conn_2->query("COMMIT");
   }
 
   function testCreateTemporaryTable()

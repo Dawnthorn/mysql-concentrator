@@ -1,0 +1,64 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file"
+    ],
+    "hash": "0ec9a53d48657d17349ab764012fc5cd",
+    "packages": [
+        {
+            "name": "giant-rabbit/php-util",
+            "version": "dev-master",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/giant-rabbit/php-util.git",
+                "reference": "c602f1f04fab2a46e2254955acfbff8c910f1386"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/giant-rabbit/php-util/zipball/c602f1f04fab2a46e2254955acfbff8c910f1386",
+                "reference": "c602f1f04fab2a46e2254955acfbff8c910f1386",
+                "shasum": ""
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "1.0.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-0": {
+                    "GR\\": "lib/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Peter Haight",
+                    "email": "peterh@giantrabbit.com"
+                }
+            ],
+            "description": "Some PHP functions we use a lot.",
+            "homepage": "https://github.com/giant-rabbit/php-util",
+            "time": "2013-11-29 23:00:58"
+        }
+    ],
+    "packages-dev": [
+
+    ],
+    "aliases": [
+
+    ],
+    "minimum-stability": "dev",
+    "stability-flags": [
+
+    ],
+    "platform": [
+
+    ],
+    "platform-dev": [
+
+    ]
+}

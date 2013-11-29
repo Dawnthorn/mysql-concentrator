@@ -1,16 +1,8 @@
 <?php
 
-class MySQLConcentratorSocketException extends Exception
-{
-  function __construct($message, $socket)
-  {
-    $message = MySQLConcentratorSocket::std_error($message, $socket);
-    parent::__construct($message);
-  }
-}
+namespace MySQLConcentrator;
 
-
-class MySQLConcentratorSocket
+class Socket
 {
   static function error_code($socket)
   {

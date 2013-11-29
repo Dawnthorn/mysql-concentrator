@@ -1,8 +1,8 @@
 <?php
 
-require_once('MySQLConcentratorConnection.php');
+namespace MySQLConcentrator;
 
-class MySQLConcentratorMySQLConnection extends MySQLConcentratorConnection
+class MySQLConnection extends Connection
 {
   public $client_authentication_response_packet = null;
   public $client_queue = array();
@@ -22,13 +22,13 @@ class MySQLConcentratorMySQLConnection extends MySQLConcentratorConnection
     }
     if ($this->current_client == null)
     {
-      throw new MySQLConcentratorFatalException("We have received packets on the MySQL connection, but we have no client expecting any packets.");
+      throw new FatalException("We have received packets on the MySQL connection, but we have no client expecting any packets.");
     }
     foreach ($this->packets_read as $packet)
     {
       if ($this->handshake_init_packet == null)
       {
-        $packet->type = MySQLConcentratorPacket::HANDSHAKE_INITIALIZATION_PACKET;
+        $packet->type = Packet::HANDSHAKE_INITIALIZATION_PACKET;
         $this->handshake_init_packet = $packet;
       }
       elseif ($this->client_authentication_response_packet == null)

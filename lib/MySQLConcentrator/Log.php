@@ -1,6 +1,8 @@
 <?php
 
-class MySQLConcentratorLog
+namespace MySQLConcentrator;
+
+class Log
 {
   public $file;
   public $file_path = NULL;

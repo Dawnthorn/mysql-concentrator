@@ -1,12 +1,13 @@
 <?php
+
+require_once('vendor/autoload.php');
 require_once(dirname(__FILE__) . "/simpletest/autorun.php");
-require_once(dirname(__FILE__) . "/../MySQLConcentratorBuffer.php");
 
 class MySQLConcentratorBufferTest extends UnitTestCase
 {
   function testAppend()
   {
-    $buffer = new MySQLConcentratorBuffer();
+    $buffer = new MySQLConcentrator\Buffer();
     $buffer->append("Foo!");
     $this->assertEqual("Foo!", $buffer->buffer);
     $this->assertEqual(4, $buffer->length());
@@ -14,7 +15,7 @@ class MySQLConcentratorBufferTest extends UnitTestCase
 
   function testPop()
   {
-    $buffer = new MySQLConcentratorBuffer();
+    $buffer = new MySQLConcentrator\Buffer();
     $buffer->append("Foo!Bar!");
     $this->assertEqual("Foo!", $buffer->pop(4));
     $this->assertEqual("Bar!", $buffer->buffer);

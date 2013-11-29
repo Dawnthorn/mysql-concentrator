@@ -2,6 +2,9 @@
   "authors": [
     {"name": "Peter Haight", "email": "peterh@giantrabbit.com"}
   ],
+  "autoload": {
+    "psr-0": { "MySQLConcentrator\\": "lib/" }
+  },
   "description": "A MySQL proxy server written in PHP",
   "extra": {
     "branch-alias": {
@@ -10,6 +13,9 @@
   },
   "homepage": "https://github.com/giant-rabbit/mysql-concentrator",
   "license": "MIT",
+  "minimum-stability": "dev",
   "name": "giant-rabbit/mysql-concentrator",
-  "version": "1.0.0@dev"
+  "require": {
+    "giant-rabbit/php-util": "~1.0.3"
+  }
 }
