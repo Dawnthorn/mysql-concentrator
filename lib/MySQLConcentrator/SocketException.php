@@ -2,7 +2,7 @@
 
 namespace MySQLConcentrator;
 
-class SocketException extends Exception
+class SocketException extends \Exception
 {
   function __construct($message, $socket)
   {

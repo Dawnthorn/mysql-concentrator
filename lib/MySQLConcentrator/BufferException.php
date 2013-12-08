@@ -2,4 +2,4 @@
 
 namespace MySQLConcentrator;
 
-class BufferException extends Exception {};
+class BufferException extends \Exception {};
