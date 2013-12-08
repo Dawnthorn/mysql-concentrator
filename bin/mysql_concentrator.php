@@ -8,7 +8,7 @@ function write_error($msg)
   fwrite($stderr, $msg);
 }
 
-$options = getopt("h:p:");
+$options = getopt("h:p:l:");
 $exit_status = 0;
 if (!array_key_exists('h', $options))
 {
@@ -27,7 +27,11 @@ if ($exit_status == 0)
     'host' => $options['h'],
     'port' => $options['p'],
   );
-  $mysql_concentrator = new MySQLConcentrator\Server();
+  if (array_key_exists('l', $options))
+  {
+    $settings['listen_port'] = $options['l'];
+  }
+  $mysql_concentrator = new MySQLConcentrator\Server($settings);
   $mysql_concentrator->run();
 }
 exit($exit_status);
