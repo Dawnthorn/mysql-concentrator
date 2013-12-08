@@ -29,6 +29,7 @@ class Server
     $this->log = new Log($this->log_file_name);
     $this->mysql_address = \GR\Hash::fetch($settings, 'host', $this->mysql_address);
     $this->mysql_port = \GR\Hash::fetch($settings, 'port', $this->mysql_port);
+    $this->listen_port = \GR\Hash::fetch($settings, 'listen_port', $this->listen_port);
   }
 
   function create_mysql_connection()

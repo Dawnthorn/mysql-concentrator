@@ -23,7 +23,12 @@ class Launcher
     elseif ($this->concentrator_pid == 0)
     {
       $cmd = "/usr/bin/php";
-      $args = array("mysql_concentrator.php", "-h", $this->settings['host'], '-p', $this->settings['port']);
+      $args = array("{$this->bin_path}", "-h", $this->settings['host'], '-p', $this->settings['port']);
+      if (array_key_exists('listen_port', $this->settings))
+      {
+        $args[] = '-l';
+        $args[] = $this->settings['listen_port'];
+      }
       chdir(dirname(__FILE__));
       pcntl_exec("/usr/bin/php", $args);
       throw new Exception("Error executing '$cmd " . implode(" ", $args) . "'");
