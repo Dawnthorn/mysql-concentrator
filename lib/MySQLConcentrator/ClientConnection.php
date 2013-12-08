@@ -55,7 +55,7 @@ class ClientConnection extends Connection
     parent::__construct($concentrator, $name, $socket, $connected, $address = NULL, $port = NULL);
     $this->state = 'waiting_for_handshake';
     $this->mysql_connection = $this->concentrator->mysql_connection;
-    if ($this->mysql_connection->handshake_completed)
+    if ($this->mysql_connection->handshake_init_packet != NULL)
     {
       $this->queue_write_packet($this->mysql_connection->handshake_init_packet);
     }
@@ -81,6 +81,12 @@ class ClientConnection extends Connection
     }
   }
 
+  function disconnect()
+  {
+    $this->mysql_connection->remove($this);
+    parent::disconnect();
+  }
+
   function done_with_operation()
   {
     return ($this->state == 'waiting_for_command');
@@ -99,6 +105,7 @@ class ClientConnection extends Connection
     $this->write_packets[] = $packet;
     $method_name = "state_{$this->state}";
 //    $this->log("executing state {$this->state} with write packet\n");
+//    $this->log("Write packets: . " . print_r($this->write_packets, TRUE) . "\n");
     $this->$method_name($packet);
   }
 
@@ -110,6 +117,7 @@ class ClientConnection extends Connection
     {
       foreach ($this->packets_read as $packet)
       {
+//        $this->log("Client Read: " . $packet->type_name() . "\n");
         $this->transform_transaction($packet);
       }
       $this->mysql_connection->queue($this);
@@ -131,7 +139,8 @@ class ClientConnection extends Connection
     }
     else
     {
-      array_shift($this->packets_read);
+      $auth_packet = array_shift($this->packets_read);
+//      $this->log("Auth packet:\n" . Hex::pretty_print($auth_packet->binary) . "\n");
       $this->queue_write_packet($this->mysql_connection->client_authentication_response_packet);
     }
   }
@@ -139,11 +148,7 @@ class ClientConnection extends Connection
   function state_waiting_for_auth_response($packet)
   {
     $packet->parse('result', 'ok');
-    if ($packet->type != Packet::RESPONSE_OK)
-    {
-      throw new FatalException("tried to queue a '" . $packet->type_name() . "' packet, but should be queuing an ok response to the client authentication packet");
-    }
-    else
+    if ($packet->type == Packet::RESPONSE_OK)
     {
       $this->state = 'waiting_for_command';
     }
@@ -271,6 +276,7 @@ class ClientConnection extends Connection
       return;
     }
     $statement = strtoupper(trim($packet->attributes['statement']));;
+//    $this->log("$statement\n");
     if ($this->concentrator->check_for_implicit_commits)
     {
       if ($this->mysql_connection->transaction_count > 0)
@@ -336,11 +342,13 @@ class ClientConnection extends Connection
 
   function wants_to_write()
   {
+//    $this->log("Wants to write: " . print_r($this->write_packets, TRUE) . " || " . !$this->write_buffer->is_empty() . "\n");
     return (!empty($this->write_packets)) || (!$this->write_buffer->is_empty());
   }
 
   function write()
   {
+//    $this->log("Writing to client.\n");
     while ($packet = array_shift($this->write_packets))
     {
       $this->write_buffer->append($packet->binary);

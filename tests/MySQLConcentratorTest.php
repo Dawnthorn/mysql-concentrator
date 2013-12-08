@@ -201,5 +201,24 @@ class MySQLConcentratorTest extends MySQLConcentratorBaseTest
     $db_conn_1->query("ROLLBACK");
     $result = $db_conn_2->query("SELECT * FROM foo WHERE value = 'second'");
     $this->assertEqual(0, $result->rowCount());
+    $db_conn_2->query("COMMIT");
+  }
+
+  function testDisconnectionDuringAuth()
+  {
+    $database_config = $this->databases_config['test'];
+    $pdo_exception_caught = FALSE;
+    try
+    {
+      $db_conn_1 = new MySQLConcentrator\PDO($this->concentrator_dsn, $database_config['user_name'], 'badpassword');
+    }
+    catch (PDOException $e)
+    {
+      $pdo_exception_caught = TRUE;
+    }
+    $this->assertTrue($pdo_exception_caught);
+    $db_conn_2 = $this->connect_to_concentrator();
+    $result = $db_conn_2->query("SELECT * FROM foo");
+    $this->assertEqual(1, $result->rowCount());
   }
 }

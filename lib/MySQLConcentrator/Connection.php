@@ -49,6 +49,14 @@ class Connection
     }
   }
 
+  function disconnect()
+  {
+    $this->connected = FALSE;
+    socket_close($this->socket);
+    $this->socket = NULL;
+    $this->closed = TRUE;
+  }
+
   function get_socket_info()
   {
     $result = @socket_getpeername($this->socket, $this->address, $this->port);
@@ -93,10 +101,8 @@ class Connection
       }
       elseif ($result === '')
       {
-        $this->connected = FALSE;
-        socket_close($this->socket);
-        $this->socket = NULL;
-        $this->closed = TRUE;
+        $this->log("marking as disconnected" . Socket::str_error($this->socket) . "\n");
+        $this->disconnect();
       }
       else
       {

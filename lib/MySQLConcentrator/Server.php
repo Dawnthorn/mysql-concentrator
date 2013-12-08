@@ -101,6 +101,11 @@ class Server
 
   function remove_connection($connection_to_delete)
   {
+    if ($this->mysql_connection == $connection_to_delete)
+    {
+      $this->mysql_connection = NULL;
+    }
+//    $connection_to_delete->log("removing from server connections.\n");
     $index = array_search($connection_to_delete, $this->connections);
     unset($this->connections[$index]);
   }
@@ -117,12 +122,14 @@ class Server
       foreach ($this->connections as $connection)
       {
         $read_sockets[] = $connection->socket;
+//        $connection->log("checking write\n");
         if ($connection->wants_to_write())
         {
           $write_sockets[] = $connection->socket;
         }
       }
       $exception_sockets = NULL;
+//      $this->log->log("select(" . print_r($read_sockets, TRUE) . ", " . print_r($write_sockets, TRUE) . ", " . print_r($exception_sockets, TRUE) . ")\n");
       $num_changed_sockets = @socket_select($read_sockets, $write_sockets, $exception_sockets, NULL);
       if ($num_changed_sockets === FALSE)
       {
@@ -149,6 +156,7 @@ class Server
               $this->create_mysql_connection();
             }
             $client_connection = new ClientConnection($this, "client", $socket, TRUE);
+//            $client_connection->log("adding to server connections.\n");
             $this->connections[] = $client_connection;
           }
           else

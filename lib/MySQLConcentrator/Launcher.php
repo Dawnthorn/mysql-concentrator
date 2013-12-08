@@ -6,10 +6,12 @@ class Launcher
 {
   public $concentrator_pid = null;
   public $settings = null;
+  public $bin_path = null;
 
   function __construct($settings)
   {
     $this->settings = $settings;
+    $this->bin_path = \GR\Path::join(dirname(dirname(__DIR__)), 'bin', 'mysql_concentrator.php');
   }
 
   function launch()
