@@ -148,4 +148,11 @@ class MySQLConcentratorPacketTest extends MySQLConcentratorBaseTest
     $result = MySQLConcentrator\Packet::marshall_little_endian_integer(280, 2);
     $this->assertEqual("\x18\x01", $result);
   }
+
+  function testPingPacket()
+  {
+    $packet = new MySQLConcentrator\Packet("\x01\x00\x00\x00\x0e");
+    $packet->parse('command');
+    $this->assertEqual(MySQLConcentrator\Packet::COM_PING, $packet->type);
+  }
 }

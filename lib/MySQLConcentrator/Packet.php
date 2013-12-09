@@ -188,6 +188,10 @@ class Packet
     $this->parse_closing_string('database_name');
   }
 
+  function parse_com_ping()
+  {
+  }
+
   function parse_com_set_option()
   {
     $this->parse_next_2_byte_integer('option_id');
