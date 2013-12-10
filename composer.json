@@ -16,6 +16,6 @@
   "minimum-stability": "dev",
   "name": "giant-rabbit/mysql-concentrator",
   "require": {
-    "giant-rabbit/php-util": "~1.0.3"
+    "giant-rabbit/php-util": ">=1.0.4"
   }
 }
