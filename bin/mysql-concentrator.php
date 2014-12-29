@@ -1,6 +1,6 @@
 <?php
 
-require_once(dirname(dirname(dirname(__DIR__))) . '/autoload.php');
+require_once(dirname(__DIR__) . '/vendor/autoload.php');
 
 function write_error($msg)
 {

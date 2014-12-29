@@ -29,16 +29,16 @@ database activity will happen in a transaction.
 Installation
 ------------
 
-Just grab it from the github repository. It just runs out of its directory.
+Just grab it from the github repository and run composer (https://getcomposer.org/). It just runs out of its directory.
 
 Usage
 -----
 
-    php mysql-concentrator.php -h <mysql server host name> -p <mysql server port>
+    php bin/mysql-concentrator.php -h <mysql server host name> -p <mysql server port>
 
 
 Configure your web application to connect to mysql on 127.0.0.1 at port 3307
-instead of its normal host and port. It's normal host and port are what
+instead of its normal host and port. Its normal host and port are what
 you should use for the command above.
 
 Now if you are going to use it for a testing framework, just add some
